@@ -1078,7 +1078,10 @@ export default function DealerScreen() {
 
                 <TouchableOpacity
                   style={styles.logoutActionBtn}
-                  onPress={() => void logout()}
+                  onPress={async () => {
+                    await logout();
+                    router.replace('/');
+                  }}
                   activeOpacity={0.8}
                 >
                   <Text style={styles.logoutActionBtnText}>Sign Out from Dealership</Text>

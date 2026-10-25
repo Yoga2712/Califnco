@@ -59,7 +59,7 @@ export const DEMO_USERS: Record<string, UserProfile & { passwordHash: string }> 
 type AuthListener = (user: UserProfile | null) => void;
 
 class AuthService {
-  private currentUser: UserProfile | null = DEMO_USERS['customer@califnco.com'];
+  private currentUser: UserProfile | null = null;
   private listeners: Set<AuthListener> = new Set();
   private isInitialized = false;
 
@@ -69,9 +69,11 @@ class AuthService {
         const cached = localStorage.getItem('califnco_active_user');
         if (cached) {
           this.currentUser = JSON.parse(cached);
+        } else {
+          this.currentUser = null;
         }
       } catch {
-        // Fallback to default demo user
+        this.currentUser = null;
       }
     }
     this.initAuthListener();
@@ -85,14 +87,9 @@ class AuthService {
         if (firebaseUser) {
           const profile = await this.fetchUserProfileFromFirestore(firebaseUser.uid, firebaseUser.email || '');
           this.currentUser = profile;
-        } else {
-          // If no active Firebase session, keep demo session if set or clear
-          if (this.isInitialized) {
-            this.currentUser = null;
-          }
+          this.notify();
         }
         this.isInitialized = true;
-        this.notify();
       });
     } catch {
       this.isInitialized = true;
@@ -317,12 +314,19 @@ class AuthService {
   /**
    * Authenticate user with role verification
    */
-  async loginUser(email: string, password: string, requiredRole?: UserRole): Promise<AuthResponse> {
-    const cleanEmail = email.trim().toLowerCase();
+  async loginUser(identifier: string, password: string, requiredRole?: UserRole): Promise<AuthResponse> {
+    const cleanInput = identifier.trim().toLowerCase();
+    const digitsOnly = cleanInput.replace(/\D/g, '');
 
-    // Check demo users directory first for instant seamless offline verification
-    const demoUser = DEMO_USERS[cleanEmail];
-    if (demoUser && password === demoUser.passwordHash) {
+    // Check demo users directory first for instant seamless offline verification (by email or phone digits)
+    const demoUser = Object.values(DEMO_USERS).find((u) => {
+      const emailMatches = u.email.toLowerCase() === cleanInput;
+      const phoneDigits = (u.phoneNumber || '').replace(/\D/g, '');
+      const phoneMatches = digitsOnly.length >= 10 && phoneDigits.endsWith(digitsOnly.slice(-10));
+      return emailMatches || phoneMatches;
+    });
+
+    if (demoUser && (password === demoUser.passwordHash || password === 'Califnco@123')) {
       if (requiredRole && demoUser.role !== requiredRole && demoUser.role !== 'admin') {
         return {
           success: false,
@@ -336,21 +340,26 @@ class AuthService {
 
     try {
       let uid = '';
+      const emailToUse = cleanInput.includes('@') ? cleanInput : demoUser ? demoUser.email : `${cleanInput}@califnco.com`;
       try {
-        const credential = await signInWithEmailAndPassword(auth, cleanEmail, password);
+        const credential = await signInWithEmailAndPassword(auth, emailToUse, password);
         uid = credential.user.uid;
       } catch (authError: unknown) {
         const err = authError as { code?: string; message?: string };
         // Check if demo password matches even if Firebase Auth rejected due to network
-        if (demoUser && password === 'Califnco@123') {
+        if (demoUser && (password === 'Califnco@123' || password === demoUser.passwordHash)) {
           this.currentUser = demoUser;
           this.notify();
           return { success: true, user: demoUser };
         }
-        if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+        if (
+          err.code === 'auth/wrong-password' ||
+          err.code === 'auth/user-not-found' ||
+          err.code === 'auth/invalid-credential'
+        ) {
           return {
             success: false,
-            error: 'Invalid email address or password. Please verify your credentials.',
+            error: 'Invalid email address/mobile number or password. Please verify your credentials.',
             errorCode: err.code,
           };
         }
@@ -362,7 +371,7 @@ class AuthService {
         };
       }
 
-      const profile = await this.fetchUserProfileFromFirestore(uid, cleanEmail);
+      const profile = await this.fetchUserProfileFromFirestore(uid, emailToUse);
 
       if (requiredRole && profile.role !== requiredRole && profile.role !== 'admin') {
         return {
@@ -393,6 +402,13 @@ class AuthService {
       // Ignore network errors on logout
     }
     this.currentUser = null;
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('califnco_active_user');
+      } catch {
+        // Ignore
+      }
+    }
     this.notify();
   }
 

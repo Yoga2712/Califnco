@@ -422,7 +422,10 @@ export default function AdminDashboardScreen() {
 
               <TouchableOpacity
                 style={styles.logoutBtn}
-                onPress={() => void logout()}
+                onPress={async () => {
+                  await logout();
+                  router.replace('/');
+                }}
                 activeOpacity={0.8}
               >
                 <Text style={styles.logoutBtnText}>Sign Out</Text>

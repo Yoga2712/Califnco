@@ -82,17 +82,15 @@ export default function CustomerProfileScreen() {
     }
   };
 
-  const handleLogout = () => {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out of your account?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Sign Out',
-        style: 'destructive',
-        onPress: () => {
-          void logout();
-        },
-      },
-    ]);
+  React.useEffect(() => {
+    if (!isAuthenticated && !isLoading) {
+      router.replace('/');
+    }
+  }, [isAuthenticated, isLoading]);
+
+  const handleLogout = async () => {
+    await logout();
+    router.replace('/');
   };
 
   const handleQuickDemoLogin = async (roleToUse: UserRole) => {
@@ -317,45 +315,7 @@ export default function CustomerProfileScreen() {
               </View>
             </View>
 
-            {/* Role Switcher for Technical Verification */}
-            <View style={styles.sectionCard}>
-              <Text style={styles.sectionTitle}>Role Verification Simulator</Text>
-              <Text style={styles.roleSubtext}>
-                Quickly test role-based access for Customer, Dealer, and Admin roles:
-              </Text>
 
-              <View style={styles.roleSwitchRow}>
-                <TouchableOpacity
-                  style={[styles.roleSwitchBtn, user.role === 'customer' && styles.roleSwitchBtnActive]}
-                  onPress={() => handleQuickDemoLogin('customer')}
-                  activeOpacity={0.8}
-                >
-                  <Text style={[styles.roleSwitchText, user.role === 'customer' && styles.roleSwitchTextActive]}>
-                    Customer
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.roleSwitchBtn, user.role === 'dealer' && styles.roleSwitchBtnActive]}
-                  onPress={() => handleQuickDemoLogin('dealer')}
-                  activeOpacity={0.8}
-                >
-                  <Text style={[styles.roleSwitchText, user.role === 'dealer' && styles.roleSwitchTextActive]}>
-                    Dealer (B2B)
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.roleSwitchBtn, user.role === 'admin' && styles.roleSwitchBtnActive]}
-                  onPress={() => handleQuickDemoLogin('admin')}
-                  activeOpacity={0.8}
-                >
-                  <Text style={[styles.roleSwitchText, user.role === 'admin' && styles.roleSwitchTextActive]}>
-                    Admin
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
 
             {/* Logout Button */}
             <TouchableOpacity

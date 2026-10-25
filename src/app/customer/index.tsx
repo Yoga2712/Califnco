@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
     View,
     Text,
@@ -7,13 +7,40 @@ import {
     ScrollView,
 } from "react-native";
 import { router } from "expo-router";
+import { useAuth } from "../../context/AuthContext";
 
 export default function CustomerHome() {
+    const { user, isAuthenticated, isLoading, logout } = useAuth();
+
+    useEffect(() => {
+        if (!isAuthenticated && !isLoading) {
+            router.replace("/");
+        }
+    }, [isAuthenticated, isLoading]);
+
+    const handleSignOut = async () => {
+        await logout();
+        router.replace("/");
+    };
+
     return (
         <ScrollView style={styles.container}>
             <View style={styles.header}>
-                <Text style={styles.greeting}>Welcome 👋</Text>
-                <Text style={styles.title}>Calinfco</Text>
+                <View style={styles.headerRow}>
+                    <View style={styles.headerTitles}>
+                        <Text style={styles.greeting}>
+                            Welcome, {user?.displayName || "Friend"} 👋
+                        </Text>
+                        <Text style={styles.title}>Califnco</Text>
+                    </View>
+                    <TouchableOpacity
+                        style={styles.signOutBtn}
+                        onPress={handleSignOut}
+                        activeOpacity={0.8}
+                    >
+                        <Text style={styles.signOutText}>Sign Out</Text>
+                    </TouchableOpacity>
+                </View>
                 <Text style={styles.subtitle}>
                     Pure water. Delivered to your doorstep.
                 </Text>
@@ -22,7 +49,7 @@ export default function CustomerHome() {
             <View style={styles.banner}>
                 <Text style={styles.bannerTitle}>Fresh Water, Anytime 💧</Text>
                 <Text style={styles.bannerText}>
-                    Order your drinking water easily from Calinfco.
+                    Order your drinking water easily from Califnco.
                 </Text>
             </View>
 
@@ -76,20 +103,47 @@ const styles = StyleSheet.create({
     },
 
     header: {
-        padding: 24,
+        paddingHorizontal: 24,
         paddingTop: 50,
+        paddingBottom: 16,
+    },
+
+    headerRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+    },
+
+    headerTitles: {
+        flex: 1,
     },
 
     greeting: {
-        fontSize: 16,
+        fontSize: 15,
         color: "#64748B",
+        fontWeight: "600",
     },
 
     title: {
         fontSize: 32,
         fontWeight: "800",
         color: "#0F172A",
-        marginTop: 4,
+        marginTop: 2,
+    },
+
+    signOutBtn: {
+        backgroundColor: "#F1F5F9",
+        paddingHorizontal: 12,
+        paddingVertical: 7,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: "#CBD5E1",
+    },
+
+    signOutText: {
+        fontSize: 12,
+        fontWeight: "700",
+        color: "#DC2626",
     },
 
     subtitle: {
