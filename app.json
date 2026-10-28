@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "califnco-water-app",
+    "name": "Califnco",
     "slug": "califnco-water-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -11,6 +11,7 @@
       "icon": "./assets/expo.icon"
     },
     "android": {
+      "package": "com.califnco.waterapp",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -37,6 +38,16 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "896707d6-27f4-461d-9fa4-8783cd309de7"
+      }
     }
   }
 }

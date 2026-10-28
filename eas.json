@@ -1,0 +1,33 @@
+{
+  "cli": {
+    "version": ">= 12.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_RAZORPAY_KEY_ID": "rzp_test_Trol5xND5RnfAg",
+        "EXPO_PUBLIC_N8N_REELS_WEBHOOK_URL": "https://n8n.califnco.com/webhook/califnco-reels-trigger"
+      }
+    },
+    "production": {
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_RAZORPAY_KEY_ID": "rzp_test_Trol5xND5RnfAg",
+        "EXPO_PUBLIC_N8N_REELS_WEBHOOK_URL": "https://n8n.califnco.com/webhook/califnco-reels-trigger"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
